@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profile document: user can read/write their own record
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Saved leads subcollection
+      match /saved_leads/{leadId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // AI chat threads subcollection
+      match /ai_chats/{chatId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

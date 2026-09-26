@@ -1,0 +1,10 @@
+{
+  "name": "Vortex One Dialer Architecture",
+  "description": "Production-oriented multi-tenant power dialer with authoritative Call FSM, multi-line dialing, RingCentral & Mock telephony providers, and real-time agent workspace.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
