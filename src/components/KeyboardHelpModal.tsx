@@ -110,7 +110,7 @@ const SHORTCUTS: ShortcutItem[] = [
   },
   {
     keys: ['S'],
-    description: 'Open Firestore Persisted Leads Drawer',
+    description: 'Open Saved Leads Drawer',
     category: 'ai_tools',
     tag: 'Cloud CRM',
   },

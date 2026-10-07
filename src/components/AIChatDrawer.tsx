@@ -5,7 +5,7 @@
  * - Model selector: gemini-3.5-flash, gemini-3.1-pro-preview, gemini-3.1-flash-lite
  * - Google Search Grounding toggle (with live citations)
  * - Google Maps Grounding toggle (with place cards & map links)
- * - Cloud synchronization with Firebase Firestore
+ * - Local persistence of conversations
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -201,7 +201,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
       const updatedList = [...newMessages, botMessage];
       setMessages(updatedList);
 
-      // Auto-sync to Firestore if user authenticated
+      // Persist the conversation locally
       if (user) {
         saveChatToCloud({
           title: `Chat with ${selectedRole.name}`,
@@ -280,7 +280,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
             <button
               onClick={handleCloudSaveChat}
               className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"
-              title="Save Conversation to Firestore Cloud"
+              title="Save Conversation"
             >
               {cloudSaved ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <CloudUpload className="w-4 h-4" />}
             </button>

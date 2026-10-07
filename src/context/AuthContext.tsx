@@ -1,25 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-} from 'firebase/auth';
-import {
-  doc,
-  setDoc,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  query,
-  orderBy,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { auth, googleProvider, firestoreDb } from '../lib/firebase';
+import React, { createContext, useContext } from 'react';
+
+// There is no account system in this app: saved leads and AI chats live in this browser's
+// localStorage. `user` is a fixed local workspace profile so existing consumers keep working.
+export interface LocalUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: LocalUser | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
@@ -30,142 +21,62 @@ interface AuthContextType {
   getCloudChats: () => Promise<any[]>;
 }
 
+const LEADS_KEY = 'vortex.saved_leads';
+const CHATS_KEY = 'vortex.ai_chats';
+const MAX_CHATS = 50;
+
+const LOCAL_USER: LocalUser = { uid: 'local', email: null, displayName: 'Local workspace', photoURL: null };
+
+const readList = (key: string): any[] => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeList = (key: string, list: any[]) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch (err) {
+    console.warn('Could not persist to localStorage:', err);
+  }
+};
+
+const newId = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-
-      if (currentUser) {
-        // Sync user doc to Firestore
-        try {
-          const userDocRef = doc(firestoreDb, 'users', currentUser.uid);
-          await setDoc(
-            userDocRef,
-            {
-              email: currentUser.email,
-              displayName: currentUser.displayName,
-              photoURL: currentUser.photoURL,
-              lastLoginAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
-        } catch (err) {
-          console.warn('Could not sync user profile to Firestore:', err);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const signInWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err: any) {
-      // Gracefully handle standard user cancellation / closing popup window
-      const errorCode = err?.code || '';
-      const errorMessage = err?.message || '';
-
-      if (
-        errorCode === 'auth/popup-closed-by-user' ||
-        errorCode === 'auth/cancelled-popup-request' ||
-        errorCode === 'auth/user-cancelled' ||
-        errorMessage.includes('auth/popup-closed-by-user') ||
-        errorMessage.includes('auth/cancelled-popup-request')
-      ) {
-        console.log('ℹ️ Google Sign-in was dismissed by the user.');
-        return;
-      }
-
-      if (errorCode === 'auth/popup-blocked') {
-        console.warn('⚠️ Google Sign-in popup was blocked by browser.');
-        return;
-      }
-
-      console.warn('Google Sign-in encountered an issue:', errorMessage || err);
-    }
-  };
-
-  const signOutUser = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error('Sign-out failed:', err);
-      throw err;
-    }
-  };
-
-  // Firestore Lead Persistence
   const saveLeadToCloud = async (lead: any): Promise<string> => {
-    if (!user) throw new Error('Authentication required to save lead to Firestore');
-    const leadsRef = collection(firestoreDb, 'users', user.uid, 'saved_leads');
-    const docRef = await addDoc(leadsRef, {
-      ...lead,
-      savedAt: new Date().toISOString(),
-      timestamp: serverTimestamp(),
-    });
-    return docRef.id;
+    const id = newId();
+    writeList(LEADS_KEY, [{ ...lead, id, savedAt: new Date().toISOString() }, ...readList(LEADS_KEY)]);
+    return id;
   };
 
-  const getCloudSavedLeads = async (): Promise<any[]> => {
-    if (!user) return [];
-    try {
-      const leadsRef = collection(firestoreDb, 'users', user.uid, 'saved_leads');
-      const q = query(leadsRef, orderBy('savedAt', 'desc'));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-    } catch (err) {
-      console.warn('Error fetching leads from Firestore:', err);
-      return [];
-    }
-  };
+  const getCloudSavedLeads = async (): Promise<any[]> =>
+    readList(LEADS_KEY).sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
 
   const deleteCloudLead = async (leadId: string): Promise<void> => {
-    if (!user) return;
-    const docRef = doc(firestoreDb, 'users', user.uid, 'saved_leads', leadId);
-    await deleteDoc(docRef);
+    writeList(LEADS_KEY, readList(LEADS_KEY).filter((lead) => lead.id !== leadId));
   };
 
-  // AI Chat Persistence
   const saveChatToCloud = async (chatData: any): Promise<void> => {
-    if (!user) return;
-    try {
-      const chatsRef = collection(firestoreDb, 'users', user.uid, 'ai_chats');
-      await addDoc(chatsRef, {
-        ...chatData,
-        updatedAt: new Date().toISOString(),
-      });
-    } catch (err) {
-      console.warn('Error saving chat to Firestore:', err);
-    }
+    const chat = { ...chatData, id: chatData.id ?? newId(), updatedAt: new Date().toISOString() };
+    writeList(CHATS_KEY, [chat, ...readList(CHATS_KEY).filter((c) => c.id !== chat.id)].slice(0, MAX_CHATS));
   };
 
-  const getCloudChats = async (): Promise<any[]> => {
-    if (!user) return [];
-    try {
-      const chatsRef = collection(firestoreDb, 'users', user.uid, 'ai_chats');
-      const q = query(chatsRef, orderBy('updatedAt', 'desc'));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-    } catch (err) {
-      console.warn('Error fetching cloud chats:', err);
-      return [];
-    }
-  };
+  const getCloudChats = async (): Promise<any[]> =>
+    readList(CHATS_KEY).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        loading,
-        signInWithGoogle,
-        signOutUser,
+        user: LOCAL_USER,
+        loading: false,
+        signInWithGoogle: async () => {},
+        signOutUser: async () => {},
         saveLeadToCloud,
         getCloudSavedLeads,
         deleteCloudLead,
