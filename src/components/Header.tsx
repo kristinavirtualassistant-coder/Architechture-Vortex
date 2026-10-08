@@ -15,7 +15,6 @@ import {
   Keyboard,
   CheckSquare,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { getPendingFollowUpCount, FOLLOW_UP_UPDATED_EVENT } from '../lib/followUpStorage';
 
 interface HeaderProps {
@@ -43,8 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTasks,
   onOpenHelp,
 }) => {
-  const { user, signInWithGoogle, signOutUser } = useAuth();
-  const [pendingTasksCount, setPendingTasksCount] = useState<number>(0);
+    const [pendingTasksCount, setPendingTasksCount] = useState<number>(0);
 
   useEffect(() => {
     const updateCount = () => {
@@ -121,14 +119,14 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">AI Copilot</span>
           </button>
 
-          {/* Firestore Saved Leads */}
+          {/* Saved Leads */}
           <button
             onClick={onOpenSavedLeads}
             className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 text-xs font-mono flex items-center space-x-1.5 transition-colors cursor-pointer"
-            title="View Firestore Persisted Leads"
+            title="View Saved Leads"
           >
             <Cloud className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden lg:inline">Cloud Leads</span>
+            <span className="hidden lg:inline">Saved Leads</span>
           </button>
 
           {/* Keyboard Shortcuts Help */}
@@ -150,47 +148,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
             <span className="text-slate-300">{isConnected ? 'LIVE WS' : 'POLLING'}</span>
           </div>
-
-          {/* Firebase Auth User Profile / Login */}
-          {user ? (
-            <div className="flex items-center space-x-2 pl-2 border-l border-slate-800">
-              {user.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName || 'User'}
-                  className="w-7 h-7 rounded-full border border-indigo-500/50"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-indigo-600/40 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-xs font-bold">
-                  {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
-                </div>
-              )}
-              <div className="hidden xl:flex flex-col text-left">
-                <span className="text-[11px] font-bold text-slate-200 leading-none truncate max-w-[100px]">
-                  {user.displayName || user.email}
-                </span>
-                <span className="text-[9px] font-mono text-emerald-400 leading-none mt-0.5">
-                  Firestore Connected
-                </span>
-              </div>
-              <button
-                onClick={signOutUser}
-                className="p-1.5 text-slate-400 hover:text-rose-400 rounded-md hover:bg-slate-800 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={signInWithGoogle}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-medium shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Google Sign-In</span>
-            </button>
-          )}
         </div>
       </div>
 

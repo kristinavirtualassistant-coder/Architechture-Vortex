@@ -401,7 +401,7 @@ export default function App() {
         </kbd>
       </button>
 
-      {/* Persistent AI & Firestore Modals/Drawers */}
+      {/* Persistent AI Modals/Drawers */}
       <KeyboardHelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}

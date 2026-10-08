@@ -160,7 +160,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
 }) => {
   const [linesCount, setLinesCount] = useState<number>(session?.lines_count || 3);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const { user, saveLeadToCloud, signInWithGoogle } = useAuth();
+  const { saveLeadToCloud } = useAuth();
   
   // State for AI Objection Assistant and Cloud Sync
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
@@ -250,11 +250,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
     }
   };
 
-  const handleSaveToFirestore = async () => {
-    if (!user) {
-      signInWithGoogle();
-      return;
-    }
+  const handleSaveLead = async () => {
     if (!activeContact) return;
 
     setCloudSaveStatus('saving');
@@ -291,7 +287,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
       setCloudSaveStatus('saved');
       setTimeout(() => setCloudSaveStatus('idle'), 3500);
     } catch (err) {
-      console.error('Save to Firestore failed:', err);
+      console.error('Save lead failed:', err);
       setCloudSaveStatus('error');
       setTimeout(() => setCloudSaveStatus('idle'), 3500);
     }
@@ -738,10 +734,10 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
               </div>
 
               <div className="flex items-center space-x-2">
-                {/* Save to Firestore Button */}
+                {/* Save Lead Button */}
                 {activeContact && (
                   <button
-                    onClick={handleSaveToFirestore}
+                    onClick={handleSaveLead}
                     disabled={cloudSaveStatus === 'saving'}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center space-x-1.5 transition-all border ${
                       cloudSaveStatus === 'saved'
@@ -750,7 +746,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
                         ? 'bg-slate-800 border-slate-700 text-slate-400'
                         : 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300 hover:bg-indigo-900/40 hover:text-white'
                     }`}
-                    title="Persist this lead with notes and property details to Firebase Firestore"
+                    title="Persist this lead with notes and property details in this browser"
                   >
                     {cloudSaveStatus === 'saving' ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-400" />
@@ -759,7 +755,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
                     ) : (
                       <CloudUpload className="w-3.5 h-3.5 text-indigo-400" />
                     )}
-                    <span>{cloudSaveStatus === 'saved' ? 'Saved to Cloud' : cloudSaveStatus === 'saving' ? 'Saving...' : 'Save to Cloud'}</span>
+                    <span>{cloudSaveStatus === 'saved' ? 'Saved' : cloudSaveStatus === 'saving' ? 'Saving...' : 'Save Lead'}</span>
                   </button>
                 )}
 

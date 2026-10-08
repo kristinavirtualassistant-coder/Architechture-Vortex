@@ -93,7 +93,7 @@ export function useKeyboardShortcuts({
         }
       }
 
-      // S key: Toggle Saved Cloud Leads Drawer
+      // S key: Toggle Saved Leads Drawer
       if ((event.key === 's' || event.key === 'S') && !event.metaKey && !event.ctrlKey && !event.altKey) {
         if (onToggleSavedLeads) {
           event.preventDefault();

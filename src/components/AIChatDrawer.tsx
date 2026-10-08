@@ -5,7 +5,7 @@
  * - Model selector: gemini-3.5-flash, gemini-3.1-pro-preview, gemini-3.1-flash-lite
  * - Google Search Grounding toggle (with live citations)
  * - Google Maps Grounding toggle (with place cards & map links)
- * - Cloud synchronization with Firebase Firestore
+ * - Local persistence of conversations
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -105,6 +105,8 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
   const [inputQuery, setInputQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [cloudSaved, setCloudSaved] = useState<boolean>(false);
+  // Stable per-conversation id so repeated saves replace the same stored snapshot
+  const [conversationId, setConversationId] = useState<string>(() => `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -201,14 +203,15 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
       const updatedList = [...newMessages, botMessage];
       setMessages(updatedList);
 
-      // Auto-sync to Firestore if user authenticated
+      // Persist the conversation locally
       if (user) {
         saveChatToCloud({
+          id: conversationId,
           title: `Chat with ${selectedRole.name}`,
           role: selectedRole.id,
           model: selectedModel,
           messages: updatedList,
-        });
+        }).catch((err) => console.warn('Chat auto-save failed:', err));
       }
     } catch (err: any) {
       console.error('Chat error:', err);
@@ -229,6 +232,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
     if (!user) return;
     try {
       await saveChatToCloud({
+        id: conversationId,
         title: `Chat with ${selectedRole.name}`,
         role: selectedRole.id,
         model: selectedModel,
@@ -242,6 +246,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
   };
 
   const handleClearHistory = () => {
+    setConversationId(`chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     setMessages([
       {
         id: 'welcome_reset',
@@ -280,7 +285,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
             <button
               onClick={handleCloudSaveChat}
               className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"
-              title="Save Conversation to Firestore Cloud"
+              title="Save Conversation"
             >
               {cloudSaved ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <CloudUpload className="w-4 h-4" />}
             </button>

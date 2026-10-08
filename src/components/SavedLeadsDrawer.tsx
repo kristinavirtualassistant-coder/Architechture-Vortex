@@ -1,6 +1,6 @@
 /**
- * Vortex One Cloud Saved Leads & Persistence Drawer
- * Backed by Firebase Firestore.
+ * Vortex One Saved Leads Drawer
+ * Stored in this browser (localStorage).
  */
 
 import React, { useEffect, useState } from 'react';
@@ -31,7 +31,7 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
   onClose,
   onSelectLead,
 }) => {
-  const { user, getCloudSavedLeads, deleteCloudLead, signInWithGoogle } = useAuth();
+  const { user, getCloudSavedLeads, deleteCloudLead } = useAuth();
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -74,8 +74,8 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
             <Database className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-sm">Firestore Saved Leads</h3>
-            <p className="text-xs text-slate-400 font-mono">Durable Cloud Database Persistence</p>
+            <h3 className="font-bold text-white text-sm">Saved Leads</h3>
+            <p className="text-xs text-slate-400 font-mono">Stored in this browser</p>
           </div>
         </div>
         <button
@@ -88,33 +88,17 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
 
       {/* Content */}
       <div className="flex-1 p-4 overflow-y-auto space-y-3">
-        {!user ? (
-          <div className="p-6 bg-slate-950/80 border border-slate-800 rounded-xl text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto">
-              <UserCheck className="w-6 h-6" />
-            </div>
-            <h4 className="font-bold text-white text-sm">Sign in for Cloud Sync</h4>
-            <p className="text-xs text-slate-400">
-              Sign in with your Google account via Firebase Auth to persist property intelligence leads and dispositions across sessions.
-            </p>
-            <button
-              onClick={signInWithGoogle}
-              className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs font-mono transition-colors shadow-lg shadow-indigo-600/20"
-            >
-              Sign In with Google
-            </button>
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="h-48 flex flex-col items-center justify-center text-slate-400 text-xs font-mono space-y-2">
             <RefreshCw className="w-5 h-5 animate-spin text-emerald-400" />
-            <span>Loading leads from Firestore...</span>
+            <span>Loading saved leads...</span>
           </div>
         ) : leads.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs font-mono space-y-2">
             <Cloud className="w-8 h-8 mx-auto text-slate-600" />
-            <div>No saved leads in your Firestore collection yet.</div>
+            <div>No saved leads yet.</div>
             <p className="text-[11px] text-slate-600">
-              Click &quot;Save to Cloud&quot; on any active contact in your dialer workspace.
+              Click &quot;Save Lead&quot; on any active contact in your dialer workspace.
             </p>
           </div>
         ) : (
@@ -134,7 +118,7 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
                 <button
                   onClick={() => handleDelete(lead.id)}
                   className="p-1 text-slate-500 hover:text-rose-400 rounded transition-colors"
-                  title="Delete from Firestore"
+                  title="Delete saved lead"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -164,7 +148,7 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
 
       {/* Footer */}
       <div className="p-3 bg-slate-950 border-t border-slate-800 text-center text-[11px] font-mono text-slate-500">
-        Firestore Collection: <span className="text-slate-400">users/{user?.uid || 'guest'}/saved_leads</span>
+        Storage: <span className="text-slate-400">browser localStorage</span>
       </div>
     </div>
   );
