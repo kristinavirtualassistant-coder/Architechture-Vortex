@@ -112,7 +112,7 @@ const SHORTCUTS: ShortcutItem[] = [
     keys: ['S'],
     description: 'Open Saved Leads Drawer',
     category: 'ai_tools',
-    tag: 'Cloud CRM',
+    tag: 'Local Storage',
   },
 
   // General
@@ -133,7 +133,7 @@ export const KeyboardHelpModal: React.FC<KeyboardHelpModalProps> = ({ isOpen, on
 
   const categories = [
     { id: 'dialing', label: 'Dialer & Call Controls', icon: Phone, color: 'text-indigo-400' },
-    { id: 'ai_tools', label: 'AI Intelligence & Cloud Drawers', icon: Sparkles, color: 'text-emerald-400' },
+    { id: 'ai_tools', label: 'AI Intelligence & Saved Data Drawers', icon: Sparkles, color: 'text-emerald-400' },
     { id: 'navigation', label: 'Tab Navigation', icon: Activity, color: 'text-blue-400' },
     { id: 'general', label: 'General & Global', icon: HelpCircle, color: 'text-amber-400' },
   ];

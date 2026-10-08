@@ -30,17 +30,21 @@ const LOCAL_USER: LocalUser = { uid: 'local', email: null, displayName: 'Local w
 const readList = (key: string): any[] => {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Drop malformed entries instead of letting them break consumers
+    return parsed.filter((item) => item && typeof item === 'object' && typeof item.id === 'string');
   } catch {
     return [];
   }
 };
 
+// Throws when the browser refuses the write (quota exceeded, storage disabled)
 const writeList = (key: string, list: any[]) => {
   try {
     localStorage.setItem(key, JSON.stringify(list));
   } catch (err) {
     console.warn('Could not persist to localStorage:', err);
+    throw new Error('Could not save to browser storage. It may be full or disabled.');
   }
 };
 

@@ -1,5 +1,5 @@
 /**
- * Vortex One Cloud Saved Leads & Persistence Drawer
+ * Vortex One Saved Leads Drawer
  * Stored in this browser (localStorage).
  */
 
@@ -75,7 +75,7 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
           </div>
           <div>
             <h3 className="font-bold text-white text-sm">Saved Leads</h3>
-            <p className="text-xs text-slate-400 font-mono">Durable Cloud Database Persistence</p>
+            <p className="text-xs text-slate-400 font-mono">Stored in this browser</p>
           </div>
         </div>
         <button
@@ -98,7 +98,7 @@ export const SavedLeadsDrawer: React.FC<SavedLeadsDrawerProps> = ({
             <Cloud className="w-8 h-8 mx-auto text-slate-600" />
             <div>No saved leads yet.</div>
             <p className="text-[11px] text-slate-600">
-              Click &quot;Save to Cloud&quot; on any active contact in your dialer workspace.
+              Click &quot;Save Lead&quot; on any active contact in your dialer workspace.
             </p>
           </div>
         ) : (

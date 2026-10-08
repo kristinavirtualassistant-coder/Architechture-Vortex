@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="View Saved Leads"
           >
             <Cloud className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden lg:inline">Cloud Leads</span>
+            <span className="hidden lg:inline">Saved Leads</span>
           </button>
 
           {/* Keyboard Shortcuts Help */}

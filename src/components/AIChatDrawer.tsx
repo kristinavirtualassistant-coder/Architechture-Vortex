@@ -105,6 +105,8 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
   const [inputQuery, setInputQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [cloudSaved, setCloudSaved] = useState<boolean>(false);
+  // Stable per-conversation id so repeated saves replace the same stored snapshot
+  const [conversationId, setConversationId] = useState<string>(() => `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -204,11 +206,12 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
       // Persist the conversation locally
       if (user) {
         saveChatToCloud({
+          id: conversationId,
           title: `Chat with ${selectedRole.name}`,
           role: selectedRole.id,
           model: selectedModel,
           messages: updatedList,
-        });
+        }).catch((err) => console.warn('Chat auto-save failed:', err));
       }
     } catch (err: any) {
       console.error('Chat error:', err);
@@ -229,6 +232,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
     if (!user) return;
     try {
       await saveChatToCloud({
+        id: conversationId,
         title: `Chat with ${selectedRole.name}`,
         role: selectedRole.id,
         model: selectedModel,
@@ -242,6 +246,7 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({
   };
 
   const handleClearHistory = () => {
+    setConversationId(`chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     setMessages([
       {
         id: 'welcome_reset',
